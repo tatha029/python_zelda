@@ -9,6 +9,8 @@ from particles import AnimationPlayer
 from enemy import Enemy
 from magic import MagicPlayer
 from upgrade import Upgrade
+from help import Help
+from game_over import GameOver
 
 from random import choice, randint
 
@@ -17,6 +19,7 @@ class Level:
         # get display surface
         self.display_surface = pygame.display.get_surface()
         self.game_paused = False
+        self.help_active = False
 
         # sprite group setup
         self.visible_sprites = YSortCameraGroup()
@@ -33,6 +36,8 @@ class Level:
         # user interface
         self.ui = UI()
         self.upgrade = Upgrade(self.player)
+        self.help = Help()
+        self.game_over = GameOver()
 
         # particles
         self.animation_player = AnimationPlayer()
@@ -132,7 +137,11 @@ class Level:
             self.player.hurt_time = pygame.time.get_ticks()
             # spawn particles
             self.animation_player.create_particles(attack_type, self.player.rect.center, [self.visible_sprites])
-    
+            
+            # Check if player is dead
+            if self.player.is_dead():
+                self.game_over.trigger_game_over()
+
     def trigger_death_particles(self, pos, particle_type):
         self.animation_player.create_particles(particle_type, pos, [self.visible_sprites])
 
@@ -142,11 +151,25 @@ class Level:
     def toggle_menu(self):
         self.game_paused = not self.game_paused
 
+    def toggle_help(self):
+        self.help_active = not self.help_active
+
     def run(self):
         #update and draw the game
         self.visible_sprites.custom_draw(self.player)
-        self.ui.display(self.player)
-        if self.game_paused:
+        self.ui.display(self.player, self.game_over.game_over)
+        
+        # Check if player is dead (in case health goes below 0 from other sources)
+        if self.player.is_dead() and not self.game_over.game_over:
+            self.game_over.trigger_game_over()
+        
+        if self.game_over.game_over:
+            # display game over screen
+            self.game_over.display()
+        elif self.help_active:
+            # display help menu
+            self.help.display()
+        elif self.game_paused:
             # display upgrade menu
             self.upgrade.display()
         else:

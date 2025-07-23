@@ -187,6 +187,9 @@ class Player(Entity):
         else:
             self.energy = self.stats['energy']
 
+    def is_dead(self):
+        return self.health <= 0
+
     def update(self):
         self.input()
         self.cooldowns()

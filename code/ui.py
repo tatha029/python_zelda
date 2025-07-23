@@ -68,9 +68,17 @@ class UI:
         magic_rect = magic_surf.get_rect(center=bg_rect.center)
         self.display_surface.blit(magic_surf, magic_rect)
 
-    def display(self, player):
+    def display(self, player, game_over=False):
         self.show_bar(player.health, player.stats['health'], self.health_bar_rect, HEALTH_COLOR)
         self.show_bar(player.energy, player.stats['energy'], self.energy_bar_rect, ENERGY_COLOR)
         self.show_exp(player.exp)
         self.weapon_overlay(player.weapon_index, not player.can_switch_weapon) # weapon
         self.magic_overlay(player.magic_index, not player.can_switch_magic) # magic
+        
+        # Help indicator (only show if not game over)
+        if not game_over:
+            help_text = self.font.render("Press H for Help", False, TEXT_COLOR)
+            help_rect = help_text.get_rect(topleft=(10, HEIGHT - 30))
+            pygame.draw.rect(self.display_surface, UI_BG_COLOR, help_rect.inflate(10, 5))
+            self.display_surface.blit(help_text, help_rect)
+            pygame.draw.rect(self.display_surface, UI_BORDER_COLOR, help_rect.inflate(10, 5), 2)
